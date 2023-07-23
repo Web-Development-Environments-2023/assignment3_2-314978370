@@ -1,70 +1,4 @@
-/* 2023-06-12 10:53:29 [104 ms] */ 
-CREATE TABLE users(  
-    user_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
-    country VARCHAR(50) NOT NULL,
-    password VARCHAR(100) NOT NULL,
-    email VARCHAR(50) NOT NULL
-) ;
-/* 2023-06-12 10:56:27 [71 ms] */ 
-ALTER TABLE users 
-	CHANGE first_name firstname varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL
-;
-/* 2023-06-12 10:56:32 [46 ms] */ 
-ALTER TABLE users 
-	CHANGE last_name lastname varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL
-;
-/* 2023-06-12 11:06:12 [5 ms] */ 
-SELECT * FROM mydb.users LIMIT 0,100;
-/* 2023-06-12 14:41:00 [60 ms] */ 
-CREATE TABLE
-    recipes (
-        recipe_id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT,
-        title VARCHAR(100),
-        image VARCHAR(255),
-        readyInMinutes INT,
-        aggregateLikes INT,
-        vegan TINYINT(1),
-        vegetarian TINYINT(1),
-        glutenFree TINYINT(1),
-        instructions TEXT,
-        servings INT,
-        extendedIngredients TEXT,
-        FOREIGN KEY (user_id) REFERENCES users(user_id)
-    );
-/* 2023-06-12 14:41:02 [46 ms] */ 
-CREATE TABLE
-    favoriteRecipes (
-        user_id INT,
-        recipe_id INT,
-        PRIMARY KEY (user_id, recipe_id),
-        FOREIGN KEY (user_id) REFERENCES users(user_id)
-    );
-/* 2023-06-12 14:41:05 [46 ms] */ 
-CREATE TABLE
-    lastSeenRecipes (
-        user_id INT,
-        recipe_id INT,
-        PRIMARY KEY (user_id, recipe_id),
-        FOREIGN KEY (user_id) REFERENCES users(user_id)
-    );
-/* 2023-06-12 14:41:07 [47 ms] */ 
-CREATE TABLE
-    familyRecipes (
-        recipe_id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT,
-        title VARCHAR(100),
-        image VARCHAR(255),
-        readyInMinutes INT,
-        author VARCHAR(100),
-        occasion VARCHAR(100),
-        extendedIngredients TEXT,
-        instructions TEXT,
-        FOREIGN KEY (user_id) REFERENCES users(user_id)
-    );
+
 /* 2023-06-12 14:56:37 [50 ms] */ 
 CREATE TABLE `mydb`.`users` (
   `user_id` INT NOT NULL AUTO_INCREMENT,
@@ -82,17 +16,6 @@ CREATE TABLE `mydb`.`FavoriteRecipes` (
   `recipe_id` INT NOT NULL,
   PRIMARY KEY (`user_id`, `recipe_id`),
   CONSTRAINT `favorites_user_id`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `mydb`.`users` (`user_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION);
-/* 2023-06-12 14:56:41 [18 ms] */ 
-  CREATE TABLE `mydb`.`viewed_recipes` (
-  `user_id` INT NOT NULL,
-  `recipe_id` INT NOT NULL,
-  `date` DATETIME NOT NULL,
-  PRIMARY KEY (`user_id`, `recipe_id`),
-  CONSTRAINT `views_user_id`
     FOREIGN KEY (`user_id`)
     REFERENCES `mydb`.`users` (`user_id`)
     ON DELETE NO ACTION
