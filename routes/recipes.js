@@ -6,15 +6,62 @@ router.get("/", (req, res) => res.send("im here"));
 
 
 /**
- * This path returns a full details of a recipe by its id
+ * This path returns preview details of a recipe by its id
  */
-router.get("/:recipeId", async (req, res, next) => {
+router.get("/prev/:recipeId", async (req, res, next) => {
   try {
     const recipe = await recipes_utils.getRecipeDetails(req.params.recipeId);
-    res.send(recipe);
+    res.status(200).send(recipe);
   } catch (error) {
     next(error);
   }
 });
 
+
+/**
+ * This path returns a full details of a recipe by its id
+ */
+router.get("/full/:recipeId", async (req, res, next) => {
+  try {
+    const recipe = await recipes_utils.getRecipeFullDetails(req.params.recipeId);
+    res.status(200).send(recipe);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * This path returns details of recipes according to search
+ */
+router.get("/search", async (req, res, next) => {
+  try {
+    let queried = {};
+    queried.query = req.query.query || '';
+    queried.cuisine = req.query.cuisine || '';
+    queried.number = req.query.resultSize || 5;
+    queried.intolerance = req.query.intolerance || '';
+    queried.diet = req.query.diet || '';
+    const results = await recipes_utils.search(queried);
+    res.status(200).send(results);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * This path returns details of  3 randoms recipes
+ */
+router.get("/random", async (req, res, next) => {
+  try {
+    const recipes = await recipes_utils.getRandoms(3);
+    res.status(200).send(recipes);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+
+
 module.exports = router;
+

@@ -21,8 +21,8 @@ paths:
     post:
       tags:
       - Auth
-      summary: A new user from the client is added to the server
-      description: A JSON object contains all the details about the new user.
+      summary: Add new user to the server.
+      description: Add new user to the server.
       requestBody:
         description: Inventory item to add
         content:
@@ -35,12 +35,14 @@ paths:
           description: A new user has been added
         "400":
           description: wrong input parameters
+        "409":
+          description: Username taken.
   /login:
     post:
       tags:
       - Auth
-      summary: Login an exist user
-      description: An exist user login to the system
+      summary: Login to the system.
+      description: An existing user logins to the system
       requestBody:
         content:
           application/json:
@@ -59,7 +61,7 @@ paths:
                 type: string
                 example: session=87s97sdhgf279293f8w0e9
         "401":
-          description: Authentication failed
+          description: Incorrect username or password
   /logout:
     post:
       tags:
@@ -72,8 +74,8 @@ paths:
     get:
       tags:
       - Users
-      summary: Return the favorite recipes that were saved by user
-      description: Get an array of recipes that were saved by a specific user
+      summary: Returns the favorites recipes that were saved by the logged-in user.
+      description: returns the favorites recipes that were saved by the logged-in user.
       responses:
         "200":
           description: data about the user's favorites recipes returned
@@ -96,15 +98,140 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                reciepeId:
-                  type: string
-                  description: reciepe's id which the user saved
-                  example: 716429
+              $ref: '#/components/schemas/RecipeID'
       responses:
         "200":
           description: The Recipe successfully saved as favorite
+        "401":
+          description: user is not authorized
+      security:
+      - cookieAuth: []
+  /users/getLastSeen:
+    get:
+      tags:
+      - Users
+      summary: Returns the user's last seen recipes.
+      description: Returns the user's last seen recipes.
+      responses:
+        "200":
+          description: returned 3 last seen recipes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LastViewed'
+              example:
+                id: "647631,"
+                title: "Hummus Soup,"
+                image: "https://spoonacular.com/recipeImages/647631-312x231.jpg,"
+                imageType: jpg
+        "401":
+          description: user is not authorized
+      security:
+      - cookieAuth: []
+    post:
+      tags:
+      - Users
+      summary: adds the last recipe to the lastSeen log for logged in user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeID'
+      responses:
+        "200":
+          description: returned 3 last seen recipes
+        "401":
+          description: user is not authorized
+      security:
+      - cookieAuth: []
+  /users/like:
+    put:
+      tags:
+        - Users
+      summary: give like to a recipe
+      description: add like to recipe in db
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeID'
+      responses:
+        "201":
+          description: successfuly added like
+        "400":
+          description: Error, invalid id
+        "401":
+          description: user is not authorized
+      security:
+      - cookieAuth: []
+  /users/personalRecipe:
+    post:
+      tags:
+        - Users
+      summary: Add new a recipe to user's personal recipes list.
+      description: Add new a recipe to user's personal recipes list.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipePage'
+        required: true
+      responses:
+        '201':
+          description: New recipe has been added.
+        '400':
+          description: Error during the process.
+      security:
+      - cookieAuth: []
+    get:
+      tags:
+      - Users
+      summary: Returns the recipes that were created by the logged-in user.
+      responses:
+        "200":
+          description: data about the user's created recipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecipePreview'
+        "401":
+          description: user is not authorized
+      security:
+      - cookieAuth: []
+  /users/FamilyRecipe:
+    post:
+      tags:
+        - Users
+      summary: Add new a recipe to user's personal recipes list.
+      description: Add new a recipe to user's personal recipes list.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipePage'
+        required: true
+      responses:
+        '201':
+          description: New recipe has been added.
+        '400':
+          description: Error during the process.
+      security:
+      - cookieAuth: []
+    get:
+      tags:
+      - Users
+      summary: Returns the family recipes that were saved by the logged-in user.
+      responses:
+        "200":
+          description: data about the user's family recipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecipePreview'
         "401":
           description: user is not authorized
       security:
@@ -133,8 +260,109 @@ paths:
                 $ref: '#/components/schemas/RecipePreview'
         "404":
           description: recipeId is not exists
+  /recipes/FullDetails/{recipeId}:
+    get:
+      tags:
+      - Recipes
+      summary: Return full details on recipe by his ID
+      description: Return full details on recipe by his ID
+      parameters:
+      - name: recipeId
+        in: path
+        description: recipe's id
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: data about the recipe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipePage'
+        "404":
+          description: recipeId is not exists
+  /search:
+    get:
+      tags:
+        - Recipes
+      summary: Search for recipes with according to query.
+      description: Search for recipe
+      parameters:
+        - name: searchQuery
+          in: query
+          description: The query to search
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: string
+            example: cake
+        - name: resultsSize
+          in: query
+          description: how many results to return
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: integer
+            default: 5
+            maximum: 15
+            minimum: 5
+            multipleOf: 5
+            example: 10
+        - name: IsGlutenFree
+          in: query
+          description: cuisine tags, SEPERATED BY COMMAS
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: boolean
+        - name: dietTags
+          in: query
+          description: diet tags, SEPERATED BY COMMAS
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            enum:
+            - vegan
+            - vegetarian
+            example: Vegetarian or Vegan only
+        
+      responses:
+        '200':
+          description: Return the recipes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MultiplyRecipes'
+        '400':
+          description: Error.
+  /random:
+    get:
+      tags:
+        - Recipes
+      summary: Return 3 random recipie ID's.
+      description: Get three random recipes.
+      responses:
+        '200':
+          description: Return the recipes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LastViewed'
+        '400':
+          description: Error.
 components:
   schemas:
+    RecipeID:
+      type: integer
+      example: 1930204
     User:
       type: object
       properties:
@@ -175,6 +403,7 @@ components:
         #   description: URL for the user's image
         #   example: https://cloudinary.com/
       description: Model containing user info
+
     LoginScheme:
       type: object
       properties:
@@ -191,6 +420,14 @@ components:
       example:
         username: my_name
         password: my_name@12
+    LastViewed:
+      maxItems: 3
+      minItems: 3
+      uniqueItems: true
+      type: array
+      description: Array of 3 recipes
+      items:
+        $ref: '#/components/schemas/RecipePreview'
     RecipePreview:
       type: object
       properties:
@@ -227,4 +464,86 @@ components:
           type: boolean
           description: indication if the recipe is gluten free
           example: false
+    RecipePage:
+      properties:
+        image/*:
+          type: string
+          format: binary
+        recipeWindow:
+          $ref: '#/components/schemas/RecipePreview'
+        ingredientsQuantities:
+          type: array
+          description: List of ingredients and quantities
+          items:
+            $ref: '#/components/schemas/ingredientQuantityUnit'
+        instructions:
+          $ref: '#/components/schemas/recipeInstructions'
+        numberOfportion:
+          type: integer
+          example: 6
+      description: recipe page
+    ingredientQuantityUnit:
+      properties:
+        ingrediant:
+          type: string
+          example: tuna
+        quantity:
+          type: integer
+          example: 2
+      description: ingredient and quantity object
+    recipeInstructions:
+      required:
+        - steps
+      type: object
+      properties:
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/recipeInstructions_steps'
+    recipeInstructions_steps:
+      type: object
+      properties:
+        amountOfMeals:
+          type: integer
+          example: 1
+          default: 1
+        equipment:
+          $ref: '#/components/schemas/recipeInstructions_equipment'
+        ingredients:
+          type: array
+          example:
+            - Potato
+            - Tomato
+          items:
+            type: string
+        number:
+          type: integer
+          example: 1
+        step:
+          type: string
+          example: Preheat the oven to 200 degrees F.
+    recipeInstructions_equipment:
+      type: object
+      properties:
+        image:
+          type: string
+          example: oven.jpg
+        name:
+          type: string
+          example: oven
+        temperature:
+          $ref: '#/components/schemas/recipeInstructions_equipment_temperature'
+    recipeInstructions_equipment_temperature:
+      type: object
+      properties:
+        number:
+          type: integer
+        unit:
+          type: string
+          example: Fahrenheit
+    MultiplyRecipes:
+      type: array
+      description: unlimited amount of reduced recipes
+      items:
+        $ref: '#/components/schemas/RecipePreview'
   
