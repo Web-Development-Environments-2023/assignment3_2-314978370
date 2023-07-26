@@ -55,29 +55,32 @@ async function getRecipeFullDetails(recipe_id) {
 }
 
 
-async function getRandoms(){
-    let randoms = await axios.get(`${api_domain}/random?number=3`, {
+async function getRandoms(number){
+    console.log(process.env.spooncular_apiKey)
+    const recipes = await axios.get(`${api_domain}/random?number=${number}`, {
         params: {
+            includeNutrition: false,
             apiKey: process.env.spooncular_apiKey
         }
-    })
-    let recipes = []
-    for (let recipe of randoms){
-        let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe.data;
+    });
+    const recipeObjects = recipes.data.recipes;
+    console.log(recipeObjects)
+    const recipeDetails = [];
 
-        recipes.push( {
-            id: id,
-            title: title,
-            readyInMinutes: readyInMinutes,
-            image: image,
-            popularity: aggregateLikes,
-            vegan: vegan,
-            vegetarian: vegetarian,
-            glutenFree: glutenFree,
-            
-        })
+    for (let i = 0; i < recipeObjects.length; i++) {
+      const recipe = recipeObjects[i];
+      recipeDetails.push({
+        id: recipe.id,
+        title: recipe.title,
+        readyInMinutes: recipe.readyInMinutes,
+        image: recipe.image,
+        vegan: recipe.vegan,
+        vegetarian: recipe.vegetarian,
+        glutenFree: recipe.glutenFree,
+      });
+
     }
-    return recipes;
+    return recipeDetails;
 }
 
 async function search(queried){
@@ -93,7 +96,7 @@ async function search(queried){
         }
     })
 
-    return results;
+    return results.data.results;
 }
 
 

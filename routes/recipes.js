@@ -8,7 +8,7 @@ router.get("/", (req, res) => res.send("im here"));
 /**
  * This path returns preview details of a recipe by its id
  */
-router.get("/FullDetailes/:recipeId", async (req, res, next) => {
+router.get("/prev/:recipeId", async (req, res, next) => {
   try {
     const recipe = await recipes_utils.getRecipeDetails(req.params.recipeId);
     res.status(200).send(recipe);
@@ -21,7 +21,7 @@ router.get("/FullDetailes/:recipeId", async (req, res, next) => {
 /**
  * This path returns a full details of a recipe by its id
  */
-router.get("/:recipeId", async (req, res, next) => {
+router.get("/full/:recipeId", async (req, res, next) => {
   try {
     const recipe = await recipes_utils.getRecipeFullDetails(req.params.recipeId);
     res.status(200).send(recipe);
@@ -53,7 +53,7 @@ router.get("/search", async (req, res, next) => {
  */
 router.get("/random", async (req, res, next) => {
   try {
-    const recipes = await recipes_utils.getRandoms();
+    const recipes = await recipes_utils.getRandoms(3);
     res.status(200).send(recipes);
   } catch (error) {
     next(error);
